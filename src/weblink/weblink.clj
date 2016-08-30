@@ -13,11 +13,10 @@
 (def us "https://en.wikipedia.org/wiki/United_States")
 (def fireworks "https://en.wikipedia.org/wiki/Fireworks")
 (def model_rocket "https://en.wikipedia.org/wiki/Model_rocket")
-(def great-northern-war "https://en.wikipedia.org/wiki/Great_Northern_War")
 (def quality-of-life "https://en.wikipedia.org/wiki/Quality_of_life")
-(def hitler "https://en.wikipedia.org/wiki/Adolf_Hitler")
 
 ;; Blacklist
+;; Sorry wikipedia, but this just throws everything off.
 (def wiki-donate-page "https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&utm_medium=sidebar&utm_campaign=C13_en.wikipedia.org&uselang=en")
 
 (defn possible-prefixes
