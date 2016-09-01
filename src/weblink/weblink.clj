@@ -1,4 +1,5 @@
 (ns weblink.weblink
+  (:gen-class)
   (:require [clojure.set :as set]
             [pl.danieljanus.tagsoup :as tagsoup]
             [clojure.java.io :as io])
@@ -182,3 +183,9 @@
               (recur g i frontier-g new-frontier explored-g
                      (assoc explored-i url [parent has-parent])))))
         (recur g i frontier-g frontier-i explored-g explored-i)))))
+
+(defn -main
+  [& args]
+  (if (not= (count args) 2)
+    (println "Please supply an initial url and a goal url.")
+    (pprint (bidirectional-search (first args) (second args)))))
