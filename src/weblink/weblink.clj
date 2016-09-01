@@ -6,15 +6,6 @@
   (:use [flatland.ordered.map]
         [clojure.pprint]))
 
-;; Test Data
-(def yegge-web "http://steve-yegge.blogspot.com")
-(def jython "http://www.jython.org")
-(def jython-book "http://www.jythonbook.org")
-(def ind_day "https://en.wikipedia.org/wiki/Independence_Day_(United_States)")
-(def us "https://en.wikipedia.org/wiki/United_States")
-(def fireworks "https://en.wikipedia.org/wiki/Fireworks")
-(def model_rocket "https://en.wikipedia.org/wiki/Model_rocket")
-(def quality-of-life "https://en.wikipedia.org/wiki/Quality_of_life")
 
 ;; Blacklist
 ;; Sorry wikipedia, but this just throws everything off.

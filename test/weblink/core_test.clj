@@ -4,23 +4,34 @@
             [pl.danieljanus.tagsoup :as tagsoup]
             [clojure.java.io :as io]))
 
+;; Test Data
+(def yegge-web "http://steve-yegge.blogspot.com")
+(def jython "http://www.jython.org")
+(def jython-book "http://www.jythonbook.org")
+(def ind_day "https://en.wikipedia.org/wiki/Independence_Day_(United_States)")
+(def us "https://en.wikipedia.org/wiki/United_States")
+(def fireworks "https://en.wikipedia.org/wiki/Fireworks")
+(def model_rocket "https://en.wikipedia.org/wiki/Model_rocket")
+(def quality-of-life "https://en.wikipedia.org/wiki/Quality_of_life")
+
+
 (deftest test-possible-prefixes
   (testing "Possible prefixes"
     (testing "with http"
-      (is (= "http://steve-yegge." (first (weblink/possible-prefixes weblink/yegge-web))))
-      (is (= "http://www." (first (weblink/possible-prefixes weblink/jython))))
-      (is (not (= "http://" (first (weblink/possible-prefixes weblink/us))))))
+      (is (= "http://steve-yegge." (first (weblink/possible-prefixes yegge-web))))
+      (is (= "http://www." (first (weblink/possible-prefixes jython))))
+      (is (not (= "http://" (first (weblink/possible-prefixes us))))))
     (testing "with https"
-      (is (= "https://en." (first (weblink/possible-prefixes weblink/ind_day))))
-      (is (= "https://en." (first (weblink/possible-prefixes weblink/us))))
-      (is (= "https://en." (first (weblink/possible-prefixes weblink/fireworks))))
-      (is (= "https://en." (first (weblink/possible-prefixes weblink/model_rocket))))
-      (is (not (= "http://" (first (weblink/possible-prefixes weblink/ind_day))))))))
+      (is (= "https://en." (first (weblink/possible-prefixes ind_day))))
+      (is (= "https://en." (first (weblink/possible-prefixes us))))
+      (is (= "https://en." (first (weblink/possible-prefixes fireworks))))
+      (is (= "https://en." (first (weblink/possible-prefixes model_rocket))))
+      (is (not (= "http://" (first (weblink/possible-prefixes ind_day))))))))
 
 (deftest test-blacklisted?
   (testing "blacklisted"
     (is (weblink/blacklisted? weblink/wiki-donate-page))
-    (is (not (weblink/blacklisted? weblink/ind_day)))))
+    (is (not (weblink/blacklisted? ind_day)))))
 
 (deftest test-get-raw-links-iter
   (testing "one-way"
@@ -107,9 +118,9 @@
 (deftest test-clean-url
   (testing "https"
     (is (= "wikipedia.org/wiki/Independence_Day_(United_States)"
-           (weblink/clean-url weblink/ind_day))))
+           (weblink/clean-url ind_day))))
   (testing "http"
-    (is (= "jython.org" (weblink/clean-url weblink/jython))))
+    (is (= "jython.org" (weblink/clean-url jython))))
   (testing "no-protocal"
     (is (= (str (io/resource "one-way/a.html"))
            (weblink/clean-url (io/resource "one-way/a.html"))))))
@@ -127,13 +138,13 @@
 (deftest test-add-parent-domain
   (testing "wikipedia pages"
     (is (= "https://en.wikipedia.org/wiki/United_States"
-           (weblink/add-parent-domain "/wiki/United_States" weblink/ind_day))))
+           (weblink/add-parent-domain "/wiki/United_States" ind_day))))
   (testing "local files"
     (is (= (str (io/resource "two-way/a.html"))
            (weblink/add-parent-domain "a.html" (str (io/resource "two-way/a.html"))))))
   (testing "other pages"
-    (is (= weblink/jython
-           (weblink/add-parent-domain weblink/jython weblink/ind_day)))))
+    (is (= jython
+           (weblink/add-parent-domain jython ind_day)))))
 
 (deftest test-has-parent?
   (testing "has valid parent"
