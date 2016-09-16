@@ -5,7 +5,11 @@ If a path does exist, the exact order of pages to visit will be printed.
 
 ## Usage
 
-To run the file you need Java 1.6 or greater and Leiningen, which you can get here: [Leiningen](http://http://leiningen.org/)
+To run the program you need Java 1.6 or greater. If you just want to run the program, download the weblink.jar file and run:
+
+    $ java -jar weblink.jar "url-1" "url-2"
+
+Alternatively, if you'd like to run it from source, the only other additional component you need is Leiningen, which you can get here: [Leiningen](http://http://leiningen.org/)
 
 Once you have the prerequisites, simply run from the command line:
 
@@ -14,7 +18,7 @@ Once you have the prerequisites, simply run from the command line:
 ## Examples
 
 ```clojure
-$ lein run "https://en.wikipedia.org/wiki/Renaissance" "https://en.wikipedia.org/wiki/Swiss_cheese"
+$ java -jar weblink.jar "https://en.wikipedia.org/wiki/Renaissance" "https://en.wikipedia.org/wiki/Swiss_cheese"
 ("https://en.wikipedia.org/wiki/Swiss_cheese"
  "https://en.wikipedia.org/wiki/Cheeses_of_Switzerland"
  "https://en.wikipedia.org/wiki/Cow"
