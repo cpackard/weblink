@@ -1,6 +1,6 @@
-# weblink
+# Bidirectional Path Finder
 
-This is a program that allows you to tell whether there's a path of URL's between any two links.
+This is a program that allows you to tell whether there's a path of links between any two URL's.
 If a path does exist, the exact order of pages to visit will be printed.
 
 ## Usage
@@ -9,11 +9,11 @@ To run the program you need Java 1.6 or greater. If you just want to run the pro
 
     $ java -jar weblink.jar "url-1" "url-2"
 
-Alternatively, if you'd like to run it from source, the only other additional component you need is Leiningen, which you can get here: [Leiningen](http://http://leiningen.org/)
+Alternatively, if you'd like to run it from source, the only other additional component you need is Leiningen, which you can get here: [http://leiningen.org/](http://leiningen.org/)
 
 Once you have the prerequisites, simply run from the command line:
 
-    $ lein run "link-1" "link-2"
+    $ lein run "url-1" "url-2"
 
 ## Examples
 
