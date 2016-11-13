@@ -244,7 +244,7 @@
     (println "Please supply an initial url and a goal url.")
     (let [[results downward upward] (bidirectional-search (first args) (second args))]
       (pprint results)
-      (with-open [out-file (io/writer "bidir.json" :append false)]
+      (with-open [out-file (io/writer "www/bidir.json" :append false)]
         (json/write {:downward {:direction "downward"
                                 :name "origin"
                                 :children [(filter-json downward results)]}
