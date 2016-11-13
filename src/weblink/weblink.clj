@@ -246,10 +246,10 @@
       (pprint results)
       (with-open [out-file (io/writer "bidir.json" :append false)]
         (json/write {:downward {:direction "downward"
-                                         :name "origin"
-                                         :children [(filter-json downward results)]}
-                              :upward   {:direction "upward"
-                                         :name "origin"
-                                         :children [(filter-json upward results)]}}
+                                :name "origin"
+                                :children [(filter-json downward results)]}
+                     :upward   {:direction "upward"
+                                :name "origin"
+                                :children [(filter-json upward results)]}}
                     out-file)))
     ))
