@@ -2,7 +2,7 @@
   "downward":{
     "direction":"downward",
     "name":"origin",
-    "children":[
+      "children":[
       {
         "name":"qrohlf/trianglify (2014)",
         "children":[

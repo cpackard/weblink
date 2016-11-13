@@ -157,33 +157,24 @@ treeChart.prototype.graphTree = function(config) {
       //var link_class;
       var link_class = direction + 'Link';
       var goal_links = ["Swiss_cheese", "Cheeses_of_Switzerland", "Cow", "History_of_the_world", "Renaissance"]
-    
-    var downwardSign = (forUpward) ? -1 : 1;
+
+      var offsetX = 0;
+      var downwardSign = (forUpward) ? -1 : 1;
+      // TODO change node color for goal nodes
     var nodeColor = (forUpward) ? '#37592b' : '#8b4513';
-    // Reset tree layout based on direction, since the downward chart has
-	// way too many nodes to fit in the screen, while we want a symmetric
-	// view for upward chart.
     var nodeSpace = 50;
     var tree = d3.layout.tree().sort(sortByDate).nodeSize([nodeSpace, 0]);
-//    if (forUpward || !forUpward) {
 	  tree.size([config.chartWidth, config.chartHeight]);
-	//}
     var nodes = tree.nodes(originalData);
-    var links = tree.links(nodes);
-	// Offset x-position for downward to view the left most record.
-      var offsetX = 0;
-      /* nodes.forEach(function(n) {
-       *     if (goal_links.includes(n.name)) {
-       *         console.log('goal link');
-       *         node_class = 'goalNode';
-       *         link_class = 'goalLink';
-       *     }
-       * })*/
-      /* if (!forUpward) {
-       *   var childrenNodes = originalData[
-       *       (originalData.children) ? 'children' : '_children'];
-       *   offsetX = d3.min([childrenNodes[0].x, 0]);
-       * }*/
+      var links = tree.links(nodes);
+
+      nodes.forEach(function(d) {
+          if (goal_links.includes(d.name)) {
+              d.nodeColor = '#0000FF';
+          } else {
+              d.nodeColor = (forUpward) ? '#37592b' : '#8b4513';
+          }
+      })
     // Normalize for fixed-depth.
     nodes.forEach(function(d) {
       d.y = downwardSign * (d.depth * linkLength) + config.centralHeight;
@@ -202,7 +193,8 @@ treeChart.prototype.graphTree = function(config) {
     var nodeEnter = node.enter().append('g')
                         .attr('class', function(d) {
                             if (goal_links.includes(d.name)) {
-                                return 'goalNode';
+                                //return 'goalNode';
+                                return node_class;
                             } else {
                                 return node_class;
                             }
@@ -211,19 +203,22 @@ treeChart.prototype.graphTree = function(config) {
           return 'translate(' + source.x0 + ',' + source.y0 + ')'; })
         .style('cursor', function(d) {
             return (d.children || d._children) ? 'pointer' : '';})
-      /* .style('stroke', function(d) {
-       *     if (goal_links.includes(d.name)) {
-       *         return '#0000FF';
-       *     }
-       * })
-       * .style('stroke-width', function(d) {
+      /* .style('stroke-width', function(d) {
        *     if (goal_links.includes(d.name)) {
        *         return '2.5px';
        *     }
        * })*/
         .on('click', click);
     nodeEnter.append('circle')
-        .attr('r', 1e-6);
+             .attr('r', 1e-6)
+              .style('stroke', function(d) {
+            if (goal_links.includes(d.name)) {
+                return '#0000FF';
+            } else {
+                return (forUpward) ? '#37592b' : '#8b4513';
+            }
+        });
+
     // Add Text stylings for node main texts
     nodeEnter.append('text')
         .attr('x', function(d) {
@@ -261,7 +256,7 @@ treeChart.prototype.graphTree = function(config) {
     nodeUpdate.select('circle')
         .attr('r', 6)
         .style('fill', function(d) {
-          if (d._children || d.children) {return nodeColor;}
+          if (d._children || d.children) {return d.nodeColor;}
         })
         .style('fill-opacity', function(d) {
           if (d.children) {return 0.35;}
@@ -295,9 +290,17 @@ treeChart.prototype.graphTree = function(config) {
             console.log(d);
             if (goal_links.includes(d.source.name) && goal_links.includes(d.target.name)) {
                 console.log('goal link');
-                return 'goalLink';
+                //return 'goalLink';
+                return link_class;
             } else {
                 return link_class;
+            }
+        })
+        .style('stroke', function(d) {
+             if (goal_links.includes(d.source.name) && goal_links.includes(d.target.name)) {
+                return '#0000FF';
+             } else {
+                 return (forUpward) ? '#37592b' : '#8b4513';
             }
         })
         .attr('d', function(d) {
