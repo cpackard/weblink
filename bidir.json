@@ -1,0 +1,138 @@
+{
+    "downward": {
+        "direction": "downward",
+        "name": "origin",
+        "children": [{
+            "name": "Renaissance",
+            "children": [{
+                "name": "History_of_the_world",
+                "children": []
+            }, {
+                "name": "Renaissance_of_the_12th_century",
+                "children": []
+            }, {
+                "name": "Wikipedia:Good_articles",
+                "children": [{
+                    "name": "en.wikipedia.org#mw-head",
+                    "children": []
+                }, {
+                    "name": "en.wikipedia.org#p-search",
+                    "children": []
+                }]
+            }, {
+                "name": "Renaissance",
+                "children": []
+            }, {
+                "name": "Renaissance_(disambiguation)",
+                "children": [{
+                    "name": "Renaissance",
+                    "children": []
+                }]
+            }, {
+                "name": "Accademia_di_Belle_Arti_di_Firenze",
+                "children": [{
+                    "name": "Florence",
+                    "children": [{
+                        "name": "Renaissance",
+                        "children": []
+                    }]
+                }, {
+                    "name": "Renaissance",
+                    "children": []
+                }]
+            }, {
+                "name": "File:David_von_Michelangelo.jpg",
+                "children": [{
+                    "name": "Renaissance",
+                    "children": []
+                }]
+            }, {
+                "name": "David_(Michelangelo)",
+                "children": [{
+                    "name": "Renaissance",
+                    "children": []
+                }, {
+                    "name": "Michelangelo",
+                    "children": [{
+                        "name": "Renaissance",
+                        "children": []
+                    }]
+                }]
+            }]
+        }]
+    },
+    "upward": {
+        "direction": "upward",
+        "name": "origin",
+        "children": [{
+            "name": "Swiss_cheese",
+            "children": [{
+                "name": "Cheeses_of_Switzerland",
+                "children": []
+            }, {
+                "name": "Cheeses_of_Switzerland",
+                "children": [{
+                    "name": "Cow",
+                    "children": []
+                }, {
+                    "name": "Cow",
+                    "children": [{
+                        "name": "History_of_the_world",
+                        "children": []
+                    }, {
+                        "name": "Cheese",
+                        "children": [{
+                            "name": "Cheeses_of_Switzerland",
+                            "children": []
+                        }, {
+                            "name": "Cow",
+                            "children": []
+                        }, {
+                            "name": "Emmental_cheese",
+                            "children": [{
+                                "name": "Medium-hard_cheese",
+                                "children": []
+                            }, {
+                                "name": "Cow",
+                                "children": []
+                            }]
+                        }, {
+                            "name": "Swiss_cheese",
+                            "children": []
+                        }]
+                    }]
+                }]
+            }, {
+                "name": "Swiss_cheese_(disambiguation)",
+                "children": [{
+                    "name": "Cheeses_of_Switzerland",
+                    "children": []
+                }, {
+                    "name": "Swiss_cheese",
+                    "children": []
+                }]
+            }, {
+                "name": "Cow",
+                "children": []
+            }, {
+                "name": "Wikipedia:Protection_policy#semi",
+                "children": [{
+                    "name": "en.wikipedia.org#mw-head",
+                    "children": []
+                }, {
+                    "name": "en.wikipedia.org#p-search",
+                    "children": []
+                }]
+            }, {
+                "name": "File:Swiss_cheese_cubes.jpg",
+                "children": [{
+                    "name": "Swiss_cheese",
+                    "children": []
+                }]
+            }, {
+                "name": "Swiss_cheese",
+                "children": []
+            }]
+        }]
+    }
+}

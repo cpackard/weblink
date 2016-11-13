@@ -2,14 +2,23 @@
   (:gen-class)
   (:require [clojure.set :as set]
             [pl.danieljanus.tagsoup :as tagsoup]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [clojure.data.json :as json])
   (:use [flatland.ordered.map]
         [clojure.pprint]))
+
+(def nose "https://en.wikipedia.org/wiki/Nose_cone")
+(def droop "https://en.wikipedia.org/wiki/Droop-nose")
+(def ren "https://en.wikipedia.org/wiki/Renaissance")
+(def swiss "https://en.wikipedia.org/wiki/Swiss_cheese")
 
 
 ;; Blacklist
 ;; Sorry wikipedia, but this just throws everything off.
 (def wiki-donate-page "https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&utm_medium=sidebar&utm_campaign=C13_en.wikipedia.org&uselang=en")
+
+(def bidir-tree-data (atom {:downward {:direction "downward" :name "origin" :children []}
+                            :upward   {:direction "upward"   :name "origin" :children []}}))
 
 (defn possible-prefixes
   "Returns a list of possible prefixes for a given url"
@@ -147,6 +156,39 @@
           (dissoc frontier-i url)
           children))
 
+(defn get-parents
+  [url frontier explored]
+  (let [parents (take-while #(not (nil? %))
+                            (find-parents url (merge frontier explored)))]
+    ; first entry will be the url itself, so remove that
+    (reverse parents)))
+
+(defn get-relevant-name
+  [url]
+  (if (.contains url "/")
+    (subs url (inc (.lastIndexOf url "/")))
+    url))
+
+(defn add-to-child-data
+  [url children url-parents search-data]
+  (assoc-in search-data url-parents (into {} (map #(vector % {}) (filter #(not (or (.contains % "#")
+                                                                                   (.contains % ".php")
+                                                                                   (.contains % ":")))
+                                                                         children)))))
+
+(defn convert-to-json
+  [[parent children]]
+  (if (empty? children)
+    {:name (get-relevant-name parent) :children []}
+    {:name (get-relevant-name parent)
+     :children (into []
+                     (map #(convert-to-json %)
+                          (filter #(not (or (.contains % "#")
+                                            (.contains % ".php")
+                                            (.contains % ":")))
+                                  children)))
+     }))
+
 (defn bidirectional-search
   [initial goal]
   (loop [i initial
@@ -154,15 +196,20 @@
          frontier-i (ordered-map initial [nil :true])
          frontier-g (ordered-map goal [nil :true])
          explored-i {}
-         explored-g {}]
+         explored-g {}
+         children-i {initial {}}
+         children-g {goal {}}]
     (if (and (empty? frontier-i) (empty? frontier-g))
       nil
       (if (not (empty? frontier-i))
         (let [[url [parent has-parent]] (first frontier-i)]
           (if (has-valid-path? url parent has-parent g
                                frontier-i explored-i frontier-g explored-g)
-            (return-solution url parent has-parent g
-                             frontier-i explored-i frontier-g explored-g)
+            [
+             (return-solution url parent has-parent g
+                              frontier-i explored-i frontier-g explored-g)
+             (convert-to-json (first children-i))
+             (convert-to-json (first children-g))]
             ; TODO Since grabbing all these links takes such a long time, we
             ; could check if the link is in the explored queue BEFORE searching.
             ; No solution yet, find next set of child urls and keep searching
@@ -170,13 +217,39 @@
                   children (filter #(not (get explored-i %)) links)
                   new-frontier (update-frontier frontier-i children url)
                   has-parent (some #(= (clean-url url) (clean-url %)) links)]
+
               ; swap positions to explore the other node
               (recur g i frontier-g new-frontier explored-g
-                     (assoc explored-i url [parent has-parent])))))
-        (recur g i frontier-g frontier-i explored-g explored-i)))))
+                     (assoc explored-i url [parent has-parent])
+                     children-g (add-to-child-data url children (get-parents url frontier-i explored-i)
+                                                   children-i)))))
+        (recur g i frontier-g frontier-i explored-g explored-i children-g children-i)))))
+
+
+(defn filter-json
+  [json-data results]
+  (if (empty? (:children json-data))
+    (if (some #(= % (:name json-data))
+              (map #(get-relevant-name %) results))
+      json-data
+      nil)
+    {:name (:name json-data)
+     :children (filter #(not (nil? %)) (into [] (map #(filter-json % results)
+                                                     (:children json-data))))
+     }))
 
 (defn -main
   [& args]
   (if (not= (count args) 2)
     (println "Please supply an initial url and a goal url.")
-    (pprint (bidirectional-search (first args) (second args)))))
+    (let [[results downward upward] (bidirectional-search (first args) (second args))]
+      (pprint results)
+      (with-open [out-file (io/writer "bidir.json" :append false)]
+        (json/write {:downward {:direction "downward"
+                                         :name "origin"
+                                         :children [(filter-json downward results)]}
+                              :upward   {:direction "upward"
+                                         :name "origin"
+                                         :children [(filter-json upward results)]}}
+                    out-file)))
+    ))

@@ -19,6 +19,11 @@ svg{
   stroke: #37592b;
   stroke-width: 2.5px;
 }
+.goalNode circle {
+  fill: #fff;
+  stroke: #0000FF;
+  stroke-width: 2.5px;
+}
 .downwardNode text,
 .upwardNode text {
   font: 12px sans-serif;
@@ -33,6 +38,12 @@ svg{
 .upwardLink {
   fill: none;
   stroke: #37592b;
+  stroke-width: 3px;
+  opacity: 0.2;
+}
+.goalLink {
+  fill: none;
+  stroke: #0000FF;
   stroke-width: 3px;
   opacity: 0.2;
 }
@@ -58,7 +69,7 @@ treeChart.prototype.drawChart = function() {
   // First get tree data for both directions.
   this.treeData = {};
   var self = this;
-  d3.json('raw_all_tree_data.json', function(error, allData) {
+  d3.json('bidir.json', function(error, allData) {
     self.directions.forEach(function(direction) {
       self.treeData[direction] = allData[direction];
     });
@@ -74,9 +85,9 @@ treeChart.prototype.drawChart = function() {
 treeChart.prototype.getTreeConfig = function() {
   var treeConfig = {'margin': {'top': 10, 'right': 5, 'bottom': 0, 'left': 30}}
   // This will be the maximum dimensions
-  treeConfig.chartWidth = (960 - treeConfig.margin.right -
+  treeConfig.chartWidth = (2000 - treeConfig.margin.right -
       treeConfig.margin.left);
-  treeConfig.chartHeight = (500 - treeConfig.margin.top -
+  treeConfig.chartHeight = (1000 - treeConfig.margin.top -
       treeConfig.margin.bottom);
   treeConfig.centralHeight = treeConfig.chartHeight / 2;
   treeConfig.centralWidth = treeConfig.chartWidth / 2;
@@ -114,7 +125,7 @@ treeChart.prototype.graphTree = function(config) {
   var treeG = svg.append('g')
       .attr('transform',
       'translate(' + config.margin.left + ',' + config.margin.top + ')');
-  treeG.append('text').text('D3 Development Dependency')
+  treeG.append('text').text('Bidirectional Web Search')
       .attr('class', 'centralText')
       .attr('x', config.centralWidth)
       .attr('y', config.centralHeight + 5)
@@ -141,8 +152,12 @@ treeChart.prototype.graphTree = function(config) {
     // Set up the upward vs downward separation.
     var direction = originalData['direction'];
     var forUpward = direction == 'upward';
-    var node_class = direction + 'Node';
-    var link_class = direction + 'Link';
+      var node_class = direction + 'Node';
+      //var node_class;
+      //var link_class;
+      var link_class = direction + 'Link';
+      var goal_links = ["Swiss_cheese", "Cheeses_of_Switzerland", "Cow", "History_of_the_world", "Renaissance"]
+    
     var downwardSign = (forUpward) ? -1 : 1;
     var nodeColor = (forUpward) ? '#37592b' : '#8b4513';
     // Reset tree layout based on direction, since the downward chart has
@@ -150,18 +165,25 @@ treeChart.prototype.graphTree = function(config) {
 	// view for upward chart.
     var nodeSpace = 50;
     var tree = d3.layout.tree().sort(sortByDate).nodeSize([nodeSpace, 0]);
-    if (forUpward) {
+//    if (forUpward || !forUpward) {
 	  tree.size([config.chartWidth, config.chartHeight]);
-	}
+	//}
     var nodes = tree.nodes(originalData);
     var links = tree.links(nodes);
 	// Offset x-position for downward to view the left most record.
-    var offsetX = 0;
-    if (!forUpward) {
-      var childrenNodes = originalData[
-          (originalData.children) ? 'children' : '_children'];
-      offsetX = d3.min([childrenNodes[0].x, 0]);
-    }
+      var offsetX = 0;
+      /* nodes.forEach(function(n) {
+       *     if (goal_links.includes(n.name)) {
+       *         console.log('goal link');
+       *         node_class = 'goalNode';
+       *         link_class = 'goalLink';
+       *     }
+       * })*/
+      /* if (!forUpward) {
+       *   var childrenNodes = originalData[
+       *       (originalData.children) ? 'children' : '_children'];
+       *   offsetX = d3.min([childrenNodes[0].x, 0]);
+       * }*/
     // Normalize for fixed-depth.
     nodes.forEach(function(d) {
       d.y = downwardSign * (d.depth * linkLength) + config.centralHeight;
@@ -174,15 +196,31 @@ treeChart.prototype.graphTree = function(config) {
     });
 
     // Update the node.
-    var node = g.selectAll('g.' + node_class)
+    var node = g.selectAll('g.' + node_class, 'g.goalNode')
         .data(nodes, function(d) {return d.id || (d.id = ++id); });
     // Enter any new nodes at the parent's previous position.
     var nodeEnter = node.enter().append('g')
-        .attr('class', node_class)
+                        .attr('class', function(d) {
+                            if (goal_links.includes(d.name)) {
+                                return 'goalNode';
+                            } else {
+                                return node_class;
+                            }
+                        })
         .attr('transform', function(d) {
           return 'translate(' + source.x0 + ',' + source.y0 + ')'; })
         .style('cursor', function(d) {
-          return (d.children || d._children) ? 'pointer' : '';})
+            return (d.children || d._children) ? 'pointer' : '';})
+      /* .style('stroke', function(d) {
+       *     if (goal_links.includes(d.name)) {
+       *         return '#0000FF';
+       *     }
+       * })
+       * .style('stroke-width', function(d) {
+       *     if (goal_links.includes(d.name)) {
+       *         return '2.5px';
+       *     }
+       * })*/
         .on('click', click);
     nodeEnter.append('circle')
         .attr('r', 1e-6);
@@ -197,8 +235,8 @@ treeChart.prototype.graphTree = function(config) {
           // Text for origin node.
           if (d.name == 'origin') {
 		    return ((forUpward) ?
-			    'Dependency of D3' :
-				'Files dependent on D3'
+			    'Links starting from 1st URL' :
+				'Links starting from 2nd URL'
 			    ) + ' [Click to fold/expand all]';
           }
           // Text for summary nodes.
@@ -248,12 +286,20 @@ treeChart.prototype.graphTree = function(config) {
         .style('fill-opacity', 1e-6);
 
     // Update the links.
-    var link = g.selectAll('path.' + link_class)
+    var link = g.selectAll('path.' + link_class, 'path.goalLink')
         .data(links, function(d) { return d.target.id; });
 
     // Enter any new links at the parent's previous position.
     link.enter().insert('path', 'g')
-        .attr('class', link_class)
+        .attr('class', function(d) {
+            console.log(d);
+            if (goal_links.includes(d.source.name) && goal_links.includes(d.target.name)) {
+                console.log('goal link');
+                return 'goalLink';
+            } else {
+                return link_class;
+            }
+        })
         .attr('d', function(d) {
           var o = {x: source.x0, y: source.y0};
           return diagonal({source: o, target: o});
