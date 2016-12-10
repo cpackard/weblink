@@ -37,7 +37,7 @@ Let's view the results as a force-directed graph:
 
 ![Scary force-directed graph](www/ren-swiss-graph.png)
 
-This is a complete graph of all nodes searched as well as their children. This is a little difficult to make senseof (and very difficult for the browser to handle), so instead let's view only the nodes that were actually opened and searched while finding the complete path:
+This is a complete graph of all nodes searched as well as their children. This is a little difficult to make sense of (and very difficult for the browser to handle), so instead let's view only the nodes that were actually opened and searched while finding the complete path:
 
 ![Bidirectional search tree](www/bidir_ren_swiss_search.png)
 
