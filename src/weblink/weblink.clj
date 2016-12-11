@@ -188,43 +188,44 @@
                           children))
      }))
 
+(defrecord StartNode [url frontier explored children])
+
+(defn init-start-url
+  [url]
+  (->StartNode url (ordered-map url [nil :true]) {} {url {}}))
+
 (defn bidirectional-search
   [initial goal]
-  (loop [i initial
-         g goal
-         frontier-i (ordered-map initial [nil :true])
-         frontier-g (ordered-map goal [nil :true])
-         explored-i {}
-         explored-g {}
-         children-i {initial {}}
-         children-g {goal {}}]
-    (if (and (empty? frontier-i) (empty? frontier-g))
+  (loop [i (init-start-url initial)
+         g (init-start-url goal)]
+    (if (and (empty? (:frontier i)) (empty? (:frontier g)))
       nil
-      (if (not (empty? frontier-i))
-        (let [[url [parent has-parent]] (first frontier-i)]
-          (if (has-valid-path? url parent has-parent g
-                               frontier-i explored-i frontier-g explored-g)
+      (if (not (empty? (:frontier i)))
+        (let [[url [parent has-parent]] (first (:frontier i))]
+          (if (has-valid-path? url parent has-parent (:url g)
+                               (:frontier i) (:explored i) (:frontier g) (:explored g))
             [
-             (return-solution url parent has-parent g
-                              frontier-i explored-i frontier-g explored-g)
-             (convert-to-json-format (first children-i))
-             (convert-to-json-format (first children-g))]
+             (return-solution url parent has-parent (:url g)
+                              (:frontier i) (:explored i) (:frontier g) (:explored g))
+             (convert-to-json-format (first (:children i)))
+             (convert-to-json-format (first (:children g)))]
             ; TODO Since grabbing all these links takes such a long time, we
             ; could check if the link is in the explored queue BEFORE searching.
             ; No solution yet, find next set of child urls and keep searching
             (let [links (get-links url)
-                  children (filter #(not (get explored-i %)) links)
-                  new-frontier (update-frontier frontier-i children url)
+                  children (filter #(not (get (:explored i) %)) links)
+                  new-frontier (update-frontier (:frontier i) children url)
                   has-parent (some #(= (clean-url url) (clean-url %)) links)]
-
-              ; swap positions to explore the other node
-              (recur g i frontier-g new-frontier explored-g
-                     (assoc explored-i url [parent has-parent])
-                     children-g (add-to-child-data url
-                                                   children
-                                                   (get-parents url frontier-i explored-i)
-                                                   children-i)))))
-        (recur g i frontier-g frontier-i explored-g explored-i children-g children-i)))))
+              (recur g
+                     (reduce (fn [m [k v]] (assoc m k v))
+                             i
+                             [[:explored (assoc (:explored i) url [parent has-parent])]
+                              [:frontier new-frontier]
+                              [:children (add-to-child-data url
+                                                            children
+                                                            (get-parents url (:frontier i) (:explored i))
+                                                            (:children i))]])))))
+        (recur g i)))))
 
 
 (defn filter-json-data
