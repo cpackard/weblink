@@ -7,6 +7,12 @@
   (:use [flatland.ordered.map]
         [clojure.pprint]))
 
+(defrecord StartNode [url frontier explored children])
+
+(defn init-start-url
+  [url]
+  (->StartNode url (ordered-map url [nil :true]) {} {url {}}))
+
 (def ren "https://en.wikipedia.org/wiki/Renaissance")
 (def swiss "https://en.wikipedia.org/wiki/Swiss_cheese")
 
@@ -95,7 +101,6 @@
   (loop [[p h-p] [parent has-parent]
          prev url]
     (cond (nil? p) true
-          ; the second value is the has-parent property
           (and (not h-p) (not (has-parent? prev p))) nil
           :else (recur (get m p) p))))
 
@@ -103,38 +108,34 @@
 (defn has-valid-path?
   "Returns true if there is a valid path between
   the initial url and the goal url."
-  [url parent has-parent g
-   frontier-i explored-i frontier-g explored-g]
-  (or (= (clean-url url) (clean-url g))
-      (and (or (get explored-g url) (get frontier-g url))
-           ; Make sure at least one we have complete path
-           ; either from initial or goal
-           (or (has-all-parents? [url [parent has-parent]]
-                                 (merge frontier-i explored-i))
-               (has-all-parents? [url (get (merge frontier-g explored-g) url)]
-                                 (merge frontier-g explored-g))))))
+  [url parent has-parent i g]
+  (let [all-links-g (merge (:frontier g) (:explored g))
+        all-links-i (merge (:frontier i) (:explored i))]
+    (or (= (clean-url url) (clean-url (:url g)))
+        (and (or (get (:explored g) url) (get (:frontier g) url))
+                                        ; Make sure at least one we have complete path
+                                        ; either from initial or goal
+             (or (has-all-parents? [url [parent has-parent]] all-links-i)
+                 (has-all-parents? [url (get all-links-g url)] all-links-g))))))
 
 (defn return-solution
   "Given two url's with a valid path between them,
   find and return the solution."
-  [url parent has-parent g
-   frontier-i explored-i frontier-g explored-g]
-  (if (= (clean-url url) (clean-url g))
-    ; Found path from initial to goal, return path from initial to goal
-    (reverse (take-while #(not (nil? %))
-                         (find-parents url (merge frontier-i explored-i))))
-
-    ; Paths met in the middle, find path in both sets and return final result
-    (let [parents-i (take-while #(not (nil? %))
-                                (find-parents parent
-                                              (merge frontier-i explored-i)))
-          parents-g (take-while #(not (nil? %))
-                                (find-parents url
-                                              (merge frontier-g explored-g)))]
-      (if (has-all-parents? [url [parent has-parent]]
-                            (merge frontier-i explored-i))
-        (concat (reverse parents-g) parents-i)
-        (concat (reverse parents-i) parents-g)))))
+  [url parent has-parent i g]
+  (let [all-links-g (merge (:frontier g) (:explored g))
+        all-links-i (merge (:frontier i) (:explored i))]
+    (if (= (clean-url url) (clean-url (:url g)))
+      ; Found path from initial to goal, return path from initial to goal
+      (reverse (take-while #(not (nil? %))
+                           (find-parents url all-links-i)))
+      ; Paths met in the middle, find path in both sets and return final result
+      (let [parents-i (take-while #(not (nil? %))
+                                  (find-parents parent all-links-i))
+            parents-g (take-while #(not (nil? %))
+                                  (find-parents url all-links-g))]
+        (if (has-all-parents? [url [parent has-parent]] all-links-i)
+          (concat (reverse parents-g) parents-i)
+          (concat (reverse parents-i) parents-g))))))
 
 (defn update-frontier
   "Update the given frontier with a list of children
@@ -188,11 +189,17 @@
                           children))
      }))
 
-(defrecord StartNode [url frontier explored children])
-
-(defn init-start-url
-  [url]
-  (->StartNode url (ordered-map url [nil :true]) {} {url {}}))
+(defn update-search-findings
+  "Update the search based on the new child links from the current page"
+  [i url parent has-parent children new-frontier]
+  (reduce (fn [m [k v]] (assoc m k v))
+          i
+          [[:explored (assoc (:explored i) url [parent has-parent])]
+           [:frontier new-frontier]
+           [:children (add-to-child-data url
+                                         children
+                                         (get-parents url (:frontier i) (:explored i))
+                                         (:children i))]]))
 
 (defn bidirectional-search
   [initial goal]
@@ -202,31 +209,20 @@
       nil
       (if (not (empty? (:frontier i)))
         (let [[url [parent has-parent]] (first (:frontier i))]
-          (if (has-valid-path? url parent has-parent (:url g)
-                               (:frontier i) (:explored i) (:frontier g) (:explored g))
-            [
-             (return-solution url parent has-parent (:url g)
-                              (:frontier i) (:explored i) (:frontier g) (:explored g))
+          (if (has-valid-path? url parent has-parent i g)
+            [(return-solution url parent has-parent i g)
              (convert-to-json-format (first (:children i)))
              (convert-to-json-format (first (:children g)))]
             ; TODO Since grabbing all these links takes such a long time, we
             ; could check if the link is in the explored queue BEFORE searching.
-            ; No solution yet, find next set of child urls and keep searching
             (let [links (get-links url)
                   children (filter #(not (get (:explored i) %)) links)
                   new-frontier (update-frontier (:frontier i) children url)
                   has-parent (some #(= (clean-url url) (clean-url %)) links)]
               (recur g
-                     (reduce (fn [m [k v]] (assoc m k v))
-                             i
-                             [[:explored (assoc (:explored i) url [parent has-parent])]
-                              [:frontier new-frontier]
-                              [:children (add-to-child-data url
-                                                            children
-                                                            (get-parents url (:frontier i) (:explored i))
-                                                            (:children i))]])))))
+                     (update-search-findings i url parent has-parent
+                                             children new-frontier)))))
         (recur g i)))))
-
 
 (defn filter-json-data
   "Take the exisiting json-formatted data and remove and nodes
