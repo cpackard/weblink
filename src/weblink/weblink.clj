@@ -184,7 +184,7 @@
     {:name (get-relevant-name parent) :children []}
     {:name (get-relevant-name parent)
      :children (into []
-                     (map #(convert-to-json %)
+                     (map #(convert-to-json-format %)
                           children))
      }))
 
@@ -238,7 +238,7 @@
       nil)
     {:name (:name json-data)
      :children (filter #(not (nil? %))
-                       (into [] (map #(filter-json % results)
+                       (into [] (map #(filter-json-data % results)
                                      (:children json-data))))
      }))
 
