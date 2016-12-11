@@ -1,4 +1,4 @@
-(defproject weblink "0.1.0-SNAPSHOT"
+(defproject weblink "0.2.0-SNAPSHOT"
   :description "A project for finding a path of links between any two URL's."
   :url "https://github.com/cpackard/weblink/"
   :license {:name "MIT License"
